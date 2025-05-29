@@ -1,11 +1,41 @@
+/**
+ * CafeServices.js
+ * 
+ * Google Places API を利用して、カフェに関する情報を取得・加工するサービスモジュールです。
+ * 
+ * 提供機能:
+ * - getCafeInfoList(name, maxResults): カフェ名から複数候補の詳細情報を取得
+ * - getNearestStations(lat, lng, max): 緯度・経度から近隣駅情報を取得
+ * 
+ * 使用する外部サービス:
+ * - Google Places API（Text Search, Place Details）
+ * 
+ * 使用環境変数:
+ * - CAFETALE_SRC_DIR         : ソースディレクトリのルートパス
+ * - CAFETALE_ERROR_DIR       : エラーハンドリング用モジュールディレクトリ
+ * - GOOGLE_PLACES_BASE_URL   : Google Places API のベースURL
+ * - GOOGLE_APP_API_KEY       : Google API キー
+ * - GOOGLE_PLACES_GET_LIMIT  : カフェ候補取得時の最大件数
+ * 
+ * 注意点:
+ * - Google API のレスポンスステータスが "OK" でない場合はエラーをスローします。
+ * - 詳細情報取得時に都道府県、市区町村、町域（subcity）を解析・付加します。
+ */
 require('dotenv').config();
-const NotFoundError = require('../errors/NotFoundError');
 const axios = require('axios');
 const {
+    // Google API
     GOOGLE_PLACES_BASE_URL,
     GOOGLE_APP_API_KEY,
-    GOOGLE_PLACES_GET_LIMIT
+    GOOGLE_PLACES_GET_LIMIT,
 } = require('../config/api');
+
+    // ディレクトリ定義
+const path = require('path');
+const CAFETALE_ERROR_DIR = path.join(path.resolve(process.env.CAFETALE_SRC_DIR), process.env.CAFETALE_ERROR_DIR); // 絶対パスに変換
+
+// エラー定義
+const NotFoundError = require(`${CAFETALE_ERROR_DIR}NotFoundError`);
 
 /**
  * カフェ名から候補の詳細情報を複数取得
