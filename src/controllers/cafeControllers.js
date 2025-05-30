@@ -34,7 +34,7 @@ const cafeService = require(`${CAFETALE_SERVICE_DIR}cafeServices.js`);
  */
 exports.getCafeInfoList = async (req, res, next) => {
   try {
-    const { name } = req.query;
+    const { name } = req.body;
     if (!name) {
       return res.status(400).json({ status: 'error', message: 'カフェ名 (name) を指定してください。' });
     }
@@ -56,7 +56,7 @@ exports.getCafeInfoList = async (req, res, next) => {
  */
 exports.getNearestStations = async (req, res, next) => {
   try {
-    const { lat, lng } = req.query;
+    const { lat, lng } = req.body;
     if (!lat || !lng) {
       return res.status(400).json({ status: 'error', message: '緯度 (lat) および経度 (lng) を指定してください。' });
     }
