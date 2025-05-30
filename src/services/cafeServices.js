@@ -28,6 +28,8 @@ const {
     GOOGLE_PLACES_BASE_URL,
     GOOGLE_APP_API_KEY,
     GOOGLE_PLACES_GET_LIMIT,
+    GOOGLE_STATIONS_GET_LIMIT,
+    GOOGLE_STATIONS_REDIUS,
 } = require('../config/api');
 
     // ディレクトリ定義
@@ -43,7 +45,7 @@ const NotFoundError = require(`${CAFETALE_ERROR_DIR}NotFoundError`);
  * @param {number} maxResults - 取得する最大件数（デフォルト5）
  * @returns {Array} - カフェの詳細情報リスト
  */
-async function getCafeInfoList(cafeName, maxResults = `${GOOGLE_PLACES_GET_LIMIT}`) {
+async function getCafeInfoList(cafeName, maxResults = GOOGLE_PLACES_GET_LIMIT) {
   try {
     // Step 1: カフェ候補の検索（Places API: Text Search）
     const searchRes = await axios.get(`${GOOGLE_PLACES_BASE_URL}/textsearch/json`, {
@@ -131,8 +133,30 @@ async function getCafeInfoList(cafeName, maxResults = `${GOOGLE_PLACES_GET_LIMIT
  * @param {number} max
  * @returns {Promise<Array<{name: string, address: string, location: object}>>}
  */
-async function getNearestStations(lat, lng, max = 5) {
+async function getNearestStations(lat, lng, maxResults = GOOGLE_STATIONS_GET_LIMIT) {
   // API 呼び出し処理...
+  const stationRes = await axios.get(`${GOOGLE_PLACES_BASE_URL}/nearbysearch/json`, {
+    params: {
+      location: `${lat},${lng}`,
+      radius: GOOGLE_STATIONS_REDIUS,
+      type: 'train_station',
+      language: 'ja',
+      key: GOOGLE_APP_API_KEY,
+    },
+  });
+
+  // 全件から指定件数を取得
+  const stations = stationRes.data.results.slice(0, maxResults);
+  if (!stations.length) {
+    throw new NotFoundError('近隣駅が見つかりませんでした: ' + `${lat},${lng}`);
+  }
+  const results = stations.map(s => ({
+    name: s.name,
+    address: s.vicinity,
+    location: s.geometry.location,
+  }));
+
+  return results;
 }
 
 
